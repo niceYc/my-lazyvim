@@ -1,0 +1,27 @@
+-- Keymaps are automatically loaded on the VeryLazy event
+-- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
+-- Add any additional keymaps here
+
+-- Open current file in Windows File Explorer (WSL: explorer.exe, Linux: xdg-open)
+-- NOTE: <leader>fe is taken by LazyVim Explorer (neo-tree/snacks); <leader>fo (file open) it is
+vim.keymap.set("n", "<leader>fo", function()
+  local path = vim.api.nvim_buf_get_name(0)
+  if path == "" then
+    path = vim.fn.getcwd()
+  end
+  if vim.fn.has("wsl") == 1 then
+    local win_path = vim.fn.systemlist({ "wslpath", "-w", path })[1]
+    if vim.v.shell_error ~= 0 or win_path == nil or win_path == "" then
+      vim.notify("wslpath convert failed: " .. path, vim.log.levels.ERROR)
+      return
+    end
+    vim.fn.jobstart({ "explorer.exe", win_path }, { detach = true })
+  else
+    vim.fn.jobstart({ "xdg-open", path }, { detach = true })
+  end
+end, { desc = "Open in File Explorer" })
+
+-- use jk to enter normal mode
+vim.keymap.set({ "i", "v", "x", "s" }, "jk", "<Esc>", { desc = "enter normal mode" })
+vim.keymap.set("t", "jk", [[<C-\><C-n>]], { desc = "enter normal mode" })
+vim.keymap.set("c", "jk", "<C-c>", { desc = "enter normal mode" })
