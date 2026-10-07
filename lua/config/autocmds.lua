@@ -31,15 +31,37 @@ if vim.fn.has("wsl") == 1 and vim.fn.executable("/mnt/c/AIMSwitcher.exe") == 1 t
   set_english_ime()
 end
 
--- Open opencode in the background on startup
+-- Attach sidekick CLI in the background (replace the tool name as needed)
+local function attach_sidekick()
+  vim.schedule(function()
+    require("lazy").load({ plugins = { "sidekick.nvim" } })
+    require("sidekick.cli.session").setup()
+    local State = require("sidekick.cli.state")
+    local Config = require("sidekick.config")
+    local tool = Config.get_tool("opencode")
+    local attached = State.get({ attached = true, name = tool.name })
+    -- Re-show already-attached sessions of the same tool instead of opening a duplicate
+    if #attached > 0 then
+      for _, s in ipairs(attached) do
+        State.attach(s, { show = true, focus = false })
+      end
+      return
+    end
+    State.attach({ tool = tool }, { show = true, focus = false })
+  end)
+end
+
+local sidekick_autostart = vim.api.nvim_create_augroup("sidekick_autostart", { clear = true })
+
+-- Open sidekick in the background on startup
 vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    vim.schedule(function()
-      require("lazy").load({ plugins = { "sidekick.nvim" } })
-      require("sidekick.cli.session").setup()
-      local State = require("sidekick.cli.state")
-      local Config = require("sidekick.config")
-      State.attach({ tool = Config.get_tool("opencode") }, { show = true, focus = false })
-    end)
-  end,
+  group = sidekick_autostart,
+  callback = attach_sidekick,
+})
+
+-- Re-attach sidekick after restoring a session (persistence.nvim)
+vim.api.nvim_create_autocmd("User", {
+  group = sidekick_autostart,
+  pattern = "PersistenceLoadPost",
+  callback = attach_sidekick,
 })
