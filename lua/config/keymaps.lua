@@ -27,18 +27,5 @@ vim.keymap.set("n", "<leader>fo", function()
   end
 end, { desc = "Reveal in File Explorer" })
 
--- browsh: 纯文本现代浏览器，运行在浮动终端中
-vim.keymap.set("n", "<leader>bb", function()
-  require("browsh").open()
-end, { desc = "Browsh 浏览器（打开首页）" })
-
-vim.keymap.set("n", "<leader>bbu", function()
-  vim.ui.input({ prompt = "Browsh URL: ", default = "https://", completion = "url" }, function(url)
-    if url and url ~= "" then
-      require("browsh").open(url)
-    end
-  end)
-end, { desc = "Browsh 浏览器（打开网址）" })
-
 -- use jk to enter normal mode
 vim.keymap.set({ "i", "v", "x", "s" }, "jk", "<Esc>", { desc = "enter normal mode" })
